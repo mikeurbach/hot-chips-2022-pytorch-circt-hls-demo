@@ -33,6 +33,7 @@ int main(int argc, char **argv) {
     Verilated::traceEverOn(true);
     dut.trace(tfp, 99); // Trace 99 levels of hierarchy
     tfp->open(waveformFile);
+    std::cout << "[driver] Opening trace " << waveformFile << std::endl;
 #endif
   }
 

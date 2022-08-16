@@ -42,7 +42,7 @@ class Cosim(CosimBase):
       addr = self.readMsg(port, self.schema.I64)
       if addr is not None:
         print(f"read_addr: {addr.i}")
-        port.send(self.schema.I64.new_message(mem[addr.i]))
+        port.send(self.schema.I64.new_message(i=mem[addr.i]))
         print(f"sent: {mem[addr.i]}")
 
     service(self.port0_mem, self.port0)
