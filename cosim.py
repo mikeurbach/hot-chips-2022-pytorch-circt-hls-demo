@@ -18,11 +18,35 @@ class Cosim(CosimBase):
     self.port0 = self.openEP(1002, sendType=self.schema.I64, recvType=self.schema.I32)
     self.port1 = self.openEP(1003, sendType=self.schema.I64, recvType=self.schema.I32)
     self.result = self.openEP(1004, sendType=self.schema.I32, recvType=self.schema.I1)
+    self.port0_mem = [0, 0, 0, 0, 0]
+    self.port1_mem = [0, 0, 0, 0, 0]
 
   def run(self, a, b):
     self.ctrl.send(self.schema.I1.new_message(i=False))
-    addr0 = self.readMsg(self.port0, self.schema.I64)
-    # self.port0.send(self.schema.I32.new_message(i=a[addr0]))
+    self.port0_mem = a
+    self.port1_mem = b
+
+    while self.readMsg(self.ctrl, self.schema.I1) is None:
+      self.service_memories()
+      time.sleep(0.01)
+
+    result = None
+    while result is None:
+      result = self.readMsg(self.result, self.schema.I32)
+      time.sleep(0.01)
+    return result.i
+
+  def service_memories(self):
+
+    def service(mem, port):
+      addr = self.readMsg(port, self.schema.I64)
+      if addr is not None:
+        print(f"read_addr: {addr.i}")
+        port.send(self.schema.I64.new_message(mem[addr.i]))
+        print(f"sent: {mem[addr.i]}")
+
+    service(self.port0_mem, self.port0)
+    service(self.port1_mem, self.port1)
 
 portFileName = "cosim.cfg"
 checkCount = 0

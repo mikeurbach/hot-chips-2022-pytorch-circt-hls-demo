@@ -114,8 +114,8 @@ class HandshakeToESIWrapper:
 @esi.ServiceDecl
 class HandshakeServices:
   ctrl = esi.ToFromServer(to_server_type=types.i1, to_client_type=types.i1)
-  port0 = esi.ToFromServer(to_server_type=types.i64, to_client_type=types.i32)
-  port1 = esi.ToFromServer(to_server_type=types.i64, to_client_type=types.i32)
+  read_mem = esi.ToFromServer(to_server_type=types.i64,
+                              to_client_type=types.i32)
   result = esi.ToServer(types.i32)
 
 
@@ -131,10 +131,10 @@ class ServiceWrapper:
     ctrl = HandshakeServices.ctrl("ctrl", wrapped_top.out_ctrl)
     wrapped_top.in_ctrl.connect(ctrl)
 
-    port0_data = HandshakeServices.port0("port0", wrapped_top.in0_ld_addr0)
+    port0_data = HandshakeServices.read_mem("port0", wrapped_top.in0_ld_addr0)
     wrapped_top.in0_ld_data0.connect(port0_data)
 
-    port1_data = HandshakeServices.port1("port1", wrapped_top.in1_ld_addr0)
+    port1_data = HandshakeServices.read_mem("port1", wrapped_top.in1_ld_addr0)
     wrapped_top.in1_ld_data0.connect(port1_data)
 
     HandshakeServices.result("result", wrapped_top.out0)
