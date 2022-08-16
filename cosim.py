@@ -3,6 +3,8 @@ import os
 import socket
 import time
 
+import numpy as np
+
 from esi_cosim import CosimBase
 
 def isPortOpen(port):
@@ -36,14 +38,18 @@ class Cosim(CosimBase):
       time.sleep(0.01)
     return result.i
 
+  def run_checked(self, a, b):
+    print(f"Computing dot product of {a} and {b}")
+    result = self.run(a, b)
+    dot = np.dot(np.array(a), np.array(b))
+    print(f"from cosim: {result}, from numpy: {dot}")
+
   def service_memories(self):
 
     def service(mem, port):
       addr = self.readMsg(port, self.schema.I64)
       if addr is not None:
-        print(f"read_addr: {addr.i}")
         port.send(self.schema.I64.new_message(i=mem[addr.i]))
-        print(f"sent: {mem[addr.i]}")
 
     service(self.port0_mem, self.port0)
     service(self.port1_mem, self.port1)
@@ -72,5 +78,9 @@ while not isPortOpen(port):
   if checkCount > 200:
     raise Exception(f"Cosim RPC port ({port}) never opened")
   time.sleep(0.05)
+
+
+def rand_vec():
+  return [np.random.randint(0, 100) for i in range(5)]
 
 cosim = Cosim(port)
