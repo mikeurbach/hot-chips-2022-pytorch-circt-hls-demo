@@ -3,7 +3,7 @@ FROM python:3.9-bullseye
 WORKDIR /workspace
 
 RUN apt-get update && \
-    apt-get install -y ninja-build
+    apt-get install -y bison flex ninja-build
 
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.23.2/cmake-3.23.2-linux-x86_64.sh; \
     chmod +x cmake-3.23.2-linux-x86_64.sh; \

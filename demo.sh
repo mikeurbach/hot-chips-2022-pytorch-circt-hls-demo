@@ -75,6 +75,6 @@ $HOME/circt/build/bin/firtool \
 
 # Wrap the design with ESI services, then compile and run co-simulation with Verilator and Python.
 
-docker run -it --platform linux/amd64 --entrypoint bash -v $PWD:/workspace -v $HOME/circt:/circt \
+docker run -it --platform linux/amd64 --entrypoint bash -v $PWD:/app \
   hotchips-2022-pytorch-circt-hls-demo:latest \
-  cosim.sh
+  /app/cosim.sh
