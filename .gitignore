@@ -1,3 +1,5 @@
 PyCDESystem/
 obj_dir/
 __pycache__/
+.venv
+cosim.cfg

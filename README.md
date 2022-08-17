@@ -1,11 +1,22 @@
-# Build the Docker image used for running PyTorch and Verilator.
+# Install CIRCT, CIRCT-HLS, and Polygeist.
+
+Follow the instructions on their respective websites.
+
+# Install Torch and Torch-MLIR.
 
 ```sh
-docker build --platform linux/amd64 -t hotchips-2022-pytorch-circt-hls-demo:latest .
+python -m venv .venv
+
+source .venv/bin/activate
+
+pip install https://github.com/llvm/torch-mlir/releases/download/snapshot-20220816.566/torch-1.13.0.dev20220816+cpu-cp38-cp38-linux_x86_64.whl \
+    https://github.com/llvm/torch-mlir/releases/download/snapshot-20220816.566/torch_mlir-20220816.566-cp38-cp38-linux_x86_64.whl \
+    pybind11
+
 ```
 
 # Run the demo script.
 
 ```sh
-docker save hotchips-2022-pytorch-circt-hls-demo:latest | gzip > hotchips-2022-pytorch-circt-hls-demo.tar.gz
+./demo.sh
 ```

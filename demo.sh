@@ -11,10 +11,6 @@ echo
 
 # Compile Torch dot product module into MLIR Linalg dialect.
 
-docker run -it --platform linux/amd64 -v $PWD:/workspace \
-  hotchips-2022-pytorch-circt-hls-demo:latest \
-  python /workspace/compile-pytorch.py > dot-linalg.mlir
-
 echo "################################################################################"
 echo "### Linalg dialect"
 echo "################################################################################"
@@ -23,12 +19,12 @@ cat dot-linalg.mlir
 
 # Compile MLIR Linalg dialect to MLIR Affine dialect with some custom transforms.
 
-$HOME/circt/build/bin/mlir-opt dot-linalg.mlir \
+$HOME/alloy/build/bin/mlir-opt dot-linalg.mlir \
   -one-shot-bufferize='allow-return-allocs bufferize-function-boundaries' \
   -convert-linalg-to-affine-loops |
 $HOME/circt-hls/Polygeist/build/bin/polygeist-opt \
   -detect-reduction |
-$HOME/circt/build/bin/mlir-opt \
+$HOME/alloy/build/bin/mlir-opt \
   -affine-scalrep |
 $HOME/circt-hls/build/bin/hls-opt \
   -affine-scalrep > dot-affine.mlir
@@ -41,7 +37,7 @@ cat dot-affine.mlir
 
 # Compile MLIR Affine dialect to MLIR ControlFlow dialect.
 
-$HOME/circt/build/bin/mlir-opt dot-affine.mlir \
+$HOME/alloy/build/bin/mlir-opt dot-affine.mlir \
   -lower-affine \
   -convert-scf-to-cf > dot-cf.mlir			   
 
@@ -53,7 +49,7 @@ cat dot-cf.mlir
 
 # Compile MLIR ControlFlow dialect to CIRCT Handshake dialect.
 
-$HOME/circt/build/bin/circt-opt dot-cf.mlir \
+$HOME/alloy/build/bin/circt-opt dot-cf.mlir \
   -lower-std-to-handshake \
   -canonicalize > dot-handshake.mlir
 
@@ -64,17 +60,36 @@ echo
 cat dot-handshake.mlir
 
 # Compile CIRCT Handshake dialect to CIRCT HW dialect via FIRRTL.
-$HOME/circt/build/bin/circt-opt dot-handshake.mlir \
+$HOME/alloy/build/bin/circt-opt dot-handshake.mlir \
   -handshake-materialize-forks-sinks \
   -canonicalize \
   -handshake-insert-buffers=strategy=all \
   -lower-handshake-to-firrtl |
-$HOME/circt/build/bin/firtool \
+$HOME/alloy/build/bin/firtool \
   -format=mlir \
   -ir-hw > dot-hw.mlir
 
-# Wrap the design with ESI services, then compile and run co-simulation with Verilator and Python.
+# Wrap the CIRCT HW dialect with the CIRCT ESI dialect and services.
+export PYTHONPATH=$HOME/alloy/build/tools/circt/python_packages/pycde:$HOME/alloy/build/tools/circt/python_packages/circt_core
 
-docker run -it --platform linux/amd64 --entrypoint bash -v $PWD:/app \
-  hotchips-2022-pytorch-circt-hls-demo:latest \
-  /app/cosim.sh
+python wrap-esi.py
+
+# Compile the design and cosim DPI library into a simulator with Verilator.
+$HOME/alloy/external/circt/ext/bin/verilator \
+  --cc --top-module Top -sv --build --exe --assert --trace -DTRACE -DINIT_RANDOM_PROLOG_='' \
+  $HOME/alloy/external/circt/include/circt/Dialect/ESI/cosim/Cosim_DpiPkg.sv \
+  $HOME/alloy/external/circt/include/circt/Dialect/ESI/cosim/Cosim_Endpoint.sv \
+  $HOME/alloy/external/circt/include/circt/Dialect/ESI/ESIPrimitives.sv \
+  $HOME/alloy/build/lib/libEsiCosimDpiServer.so \
+  verilator-driver.cpp \
+  PyCDESystem/*.sv
+
+# Run the simulator in a separate process.
+rm -f cosim.cfg
+LD_LIBRARY_PATH=$HOME/alloy/build/lib ./obj_dir/VTop &
+
+# Run a Python script to connect to the simulator and wait for input.
+python -i -m cosim
+
+# Clean up the simulator process.
+kill $!
