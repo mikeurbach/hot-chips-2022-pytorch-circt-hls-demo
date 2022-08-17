@@ -1,9 +1,12 @@
+import torch
 import numpy as np
 
 from esi_cosim import HandshakeCosimBase, get_cosim_port
 
+from dot import DotModule
 
 class DotProduct(HandshakeCosimBase):
+  pytorch_dot = DotModule()
 
   def run(self, a, b):
     self.memories[0] = a
@@ -14,8 +17,10 @@ class DotProduct(HandshakeCosimBase):
   def run_checked(self, a, b):
     print(f"Computing dot product of {a} and {b}")
     result = self.run(a, b)
-    dot = np.dot(np.array(a), np.array(b))
-    print(f"from cosim: {result}, from numpy: {dot}")
+    tensor_a = torch.IntTensor(a)
+    tensor_b = torch.IntTensor(b)
+    dot = self.pytorch_dot.forward(tensor_a, tensor_b)
+    print(f"from cosim: {result}, from pytorch: {dot}")
 
 
 def rand_vec():
