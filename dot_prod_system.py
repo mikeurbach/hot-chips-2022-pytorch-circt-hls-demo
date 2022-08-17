@@ -5,7 +5,6 @@ from mlir.ir import Module
 from circt.dialects import hw
 
 from pycde import Input, InputChannel, OutputChannel, esi, module, generator, types
-from pycde.dialects import comb
 from pycde.system import System
 from pycde.module import import_hw_module
 
@@ -58,9 +57,10 @@ class HandshakeToESIWrapper:
 
   @generator
   def generate(ports):
-    ctrl_channel = types.channel(types.i1)
-    i32_channel = types.channel(types.i32)
-    i64_channel = types.channel(types.i64)
+    # Typedefs
+    ctrl_channel_type = types.channel(types.i1)
+    i32_channel_type = types.channel(types.i32)
+    i64_channel_type = types.channel(types.i64)
 
     # Instantiate the top-level module to wrap with backedges for most ports.
     wrapped_top = top(clock=ports.clock, reset=ports.reset)
@@ -72,7 +72,7 @@ class HandshakeToESIWrapper:
     wrapped_top.inCtrl_valid.connect(in_ctrl_valid)
 
     ## Done signal
-    out_ctrl_channel, out_ctrl_ready = ctrl_channel.wrap(
+    out_ctrl_channel, out_ctrl_ready = ctrl_channel_type.wrap(
         1, wrapped_top.outCtrl_valid)
     wrapped_top.outCtrl_ready.connect(out_ctrl_ready)
     ports.done = out_ctrl_channel
@@ -80,8 +80,7 @@ class HandshakeToESIWrapper:
     # Input 0 Ports
 
     ## Channels from Memory
-    in0_ready = comb.AndOp(wrapped_top.in0_ldData0_ready,
-                           wrapped_top.in0_ldDone0_ready)
+    in0_ready = wrapped_top.in0_ldData0_ready and wrapped_top.in0_ldDone0_ready
 
     in0_ld_data0_data, in0_ld_data0_valid = ports.in0_ld_data0.unwrap(in0_ready)
     wrapped_top.in0_ldData0_data.connect(in0_ld_data0_data)
@@ -89,7 +88,7 @@ class HandshakeToESIWrapper:
     wrapped_top.in0_ldDone0_valid.connect(in0_ld_data0_valid)
 
     ## Channels to Memory
-    in0_ld_addr0_channel, in0_ld_addr0_ready = i64_channel.wrap(
+    in0_ld_addr0_channel, in0_ld_addr0_ready = i64_channel_type.wrap(
         wrapped_top.in0_ldAddr0_data, wrapped_top.in0_ldAddr0_valid)
     wrapped_top.in0_ldAddr0_ready.connect(in0_ld_addr0_ready)
     ports.in0_ld_addr0 = in0_ld_addr0_channel
@@ -97,8 +96,7 @@ class HandshakeToESIWrapper:
     # Input 1 Ports
 
     ## Channels from Memory
-    in1_ready = comb.AndOp(wrapped_top.in1_ldData0_ready,
-                           wrapped_top.in1_ldDone0_ready)
+    in1_ready = wrapped_top.in1_ldData0_ready and wrapped_top.in1_ldDone0_ready
 
     in1_ld_data0_data, in1_ld_data0_valid = ports.in1_ld_data0.unwrap(in1_ready)
     wrapped_top.in1_ldData0_data.connect(in1_ld_data0_data)
@@ -106,14 +104,14 @@ class HandshakeToESIWrapper:
     wrapped_top.in1_ldDone0_valid.connect(in1_ld_data0_valid)
 
     ## Channels to Memory
-    in1_ld_addr0_channel, in1_ld_addr0_ready = i64_channel.wrap(
+    in1_ld_addr0_channel, in1_ld_addr0_ready = i64_channel_type.wrap(
         wrapped_top.in1_ldAddr0_data, wrapped_top.in1_ldAddr0_valid)
     wrapped_top.in1_ldAddr0_ready.connect(in1_ld_addr0_ready)
     ports.in1_ld_addr0 = in1_ld_addr0_channel
 
     # Output 0 Ports
-    out0_channel, out0_ready = i32_channel.wrap(wrapped_top.out0_data,
-                                                wrapped_top.out0_valid)
+    out0_channel, out0_ready = i32_channel_type.wrap(wrapped_top.out0_data,
+                                                     wrapped_top.out0_valid)
     wrapped_top.out0_ready.connect(out0_ready)
     ports.result = out0_channel
 
