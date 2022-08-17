@@ -2,25 +2,26 @@
 
 set -e
 
-export CIRCT_BUILD=`pwd`/../circt_build/
-export CIRCT_SRC=`pwd`/../circt/
+export CIRCT_BUILD=${CIRCT_BUILD:-`pwd`/../circt_build/}
+export CIRCT_SRC=${CIRCT_SRC:-`pwd`/../circt/}
 
 export PYTHONPATH=$CIRCT_BUILD/tools/circt/python_packages/pycde:$CIRCT_BUILD/tools/circt/python_packages/circt_core
 
 echo "################################################################################"
-echo "## Generating the ESI system with PyCDE."
-echo "##    Outputs: SystemVerilog and Cosimulation schema."
+echo "### Generating the ESI system with PyCDE."
+echo "###    Outputs: SystemVerilog and Cosimulation schema."
 echo "################################################################################"
 echo
 
 # Wrap the CIRCT HW dialect with the CIRCT ESI dialect and services.
+rm -fr PyCDESystem
 python dot_prod_system.py 2> dot_prod_system.err > dot_prod_system.log
 echo "... done."
 
 echo
 echo
 echo "################################################################################"
-echo "## Compiling the SystemVerilog to simulation with Verilator."
+echo "### Compiling the SystemVerilog to simulation with Verilator."
 echo "################################################################################"
 echo
 
@@ -39,7 +40,7 @@ echo "... done."
 echo
 echo
 echo "################################################################################"
-echo "## Running the Verilator simulation."
+echo "### Running the Verilator simulation."
 echo "################################################################################"
 echo
 
@@ -51,7 +52,7 @@ echo "... started."
 echo
 echo
 echo "################################################################################"
-echo "## Connecting to the simulation via ESI cosim, and dropping into a python shell."
+echo "### Connecting to the simulation via ESI cosim and dropping into a Python shell."
 echo "################################################################################"
 echo
 
