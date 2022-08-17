@@ -5,6 +5,7 @@ from mlir.ir import Module
 from circt.dialects import hw
 
 from pycde import Input, InputChannel, OutputChannel, esi, module, generator, types
+from pycde.constructs import Mux
 from pycde.system import System
 from pycde.module import import_hw_module
 
@@ -84,8 +85,9 @@ class HandshakeToESIWrapper:
 
     in0_ld_data0_data, in0_ld_data0_valid = ports.in0_ld_data0.unwrap(in0_ready)
     wrapped_top.in0_ldData0_data.connect(in0_ld_data0_data)
-    wrapped_top.in0_ldData0_valid.connect(in0_ld_data0_valid)
-    wrapped_top.in0_ldDone0_valid.connect(in0_ld_data0_valid)
+    in0_valid = Mux(in0_ready, types.i1(0), in0_ld_data0_valid)
+    wrapped_top.in0_ldData0_valid.connect(in0_valid)
+    wrapped_top.in0_ldDone0_valid.connect(in0_valid)
 
     ## Channels to Memory
     in0_ld_addr0_channel, in0_ld_addr0_ready = i64_channel_type.wrap(
@@ -100,8 +102,9 @@ class HandshakeToESIWrapper:
 
     in1_ld_data0_data, in1_ld_data0_valid = ports.in1_ld_data0.unwrap(in1_ready)
     wrapped_top.in1_ldData0_data.connect(in1_ld_data0_data)
-    wrapped_top.in1_ldData0_valid.connect(in1_ld_data0_valid)
-    wrapped_top.in1_ldDone0_valid.connect(in1_ld_data0_valid)
+    in1_valid = Mux(in0_ready, types.i1(0), in1_ld_data0_valid)
+    wrapped_top.in1_ldData0_valid.connect(in1_valid)
+    wrapped_top.in1_ldDone0_valid.connect(in1_valid)
 
     ## Channels to Memory
     in1_ld_addr0_channel, in1_ld_addr0_ready = i64_channel_type.wrap(
