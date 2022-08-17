@@ -5,7 +5,7 @@ set -e
 export CIRCT_BUILD=`pwd`/../circt_build/
 export CIRCT_SRC=`pwd`/../circt/
 
-export PYTHONPATH=$CIRCT_BUILD/tools/circt/python_packages/pycde:$CIRCT_BUILD/tools/circt/python_packages/circt_core:$CIRCT_BUILD/build/bin
+export PYTHONPATH=$CIRCT_BUILD/tools/circt/python_packages/pycde:$CIRCT_BUILD/tools/circt/python_packages/circt_core
 
 echo "################################################################################"
 echo "## Generating the ESI system with PyCDE."
