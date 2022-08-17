@@ -80,7 +80,7 @@ class HandshakeToESIWrapper:
     # Input 0 Ports
 
     ## Channels from Memory
-    in0_ready = wrapped_top.in0_ldData0_ready and wrapped_top.in0_ldDone0_ready
+    in0_ready = wrapped_top.in0_ldData0_ready & wrapped_top.in0_ldDone0_ready
 
     in0_ld_data0_data, in0_ld_data0_valid = ports.in0_ld_data0.unwrap(in0_ready)
     wrapped_top.in0_ldData0_data.connect(in0_ld_data0_data)
@@ -96,7 +96,7 @@ class HandshakeToESIWrapper:
     # Input 1 Ports
 
     ## Channels from Memory
-    in1_ready = wrapped_top.in1_ldData0_ready and wrapped_top.in1_ldDone0_ready
+    in1_ready = wrapped_top.in1_ldData0_ready & wrapped_top.in1_ldDone0_ready
 
     in1_ld_data0_data, in1_ld_data0_valid = ports.in1_ld_data0.unwrap(in1_ready)
     wrapped_top.in1_ldData0_data.connect(in1_ld_data0_data)
